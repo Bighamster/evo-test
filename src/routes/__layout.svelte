@@ -1,16 +1,24 @@
-<script lang="ts">
-	import Header from '$lib/header/Header.svelte';
-	import '../app.css';
+<script context="module" lang="ts">
+  /** @type {import('@sveltejs/kit').Load} */
+  export const load = async ({ url }) => ({ props: { url } });
 </script>
 
-<Header />
+<script lang="ts">
+	import PageTransition from '$lib/components/PageTransition/index.svelte';
+	import '../app.css';
 
-<main>
-	<slot />
-</main>
+	export let url: string;
+	
+</script>
+
+<PageTransition {url}>
+	<main>
+		<slot />
+	</main>
+</PageTransition>
 
 <footer>
-	<p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
+	<p>visit <a href="https://github.com/Bighamster/evo-test.git" target="_blank">evo-test</a> to Github</p>
 </footer>
 
 <style>
