@@ -1,21 +1,10 @@
-<script context="module" lang="ts">
-  /** @type {import('@sveltejs/kit').Load} */
-  export const load = async ({ url }) => ({ props: { url } });
-</script>
-
 <script lang="ts">
-	import PageTransition from '$lib/components/PageTransition/index.svelte';
 	import '../app.css';
-
-	export let url: string;
-	
 </script>
 
-<PageTransition {url}>
-	<main>
-		<slot />
-	</main>
-</PageTransition>
+<main>
+	<slot />
+</main>
 
 <footer>
 	<p>visit <a href="https://github.com/Bighamster/evo-test.git" target="_blank">evo-test</a> to Github</p>
