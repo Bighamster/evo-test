@@ -1,11 +1,11 @@
 import { writable, derived } from 'svelte/store';
 import { ethers } from 'ethers';
 
+const tick = writable(1);
 const data = writable({});
 
 const genericErc20Abi = [
   "function balanceOf(address owner) view returns (uint256)",
-  "function decimals() view returns (uint8)",
   "function symbol() view returns (string)"
 ];
 
@@ -21,44 +21,45 @@ const multiCall = async (provider, calls = []) => {
   const multiCallContract = new ethers.Contract(
     multiCallAddress,
     [
-      {
-        type: 'function',
-        name: 'aggregate',
-        payable: false,
-        stateMutability: 'view',
-        constant: true,
-        inputs: [
-          {
-            components: [
-              {
-                internalType: 'address',
-                name: 'target',
-                type: 'address',
-              },
-              {
-                internalType: 'bytes',
-                name: 'callData',
-                type: 'bytes',
-              },
-            ],
-            internalType: 'struct Multicall.Call[]',
-            name: 'calls',
-            type: 'tuple[]',
-          },
-        ],
-        outputs: [
-          {
-            internalType: 'uint256',
-            name: 'blockNumber',
-            type: 'uint256',
-          },
-          {
-            internalType: 'bytes[]',
-            name: 'returnData',
-            type: 'bytes[]',
-          },
-        ]
-      }
+      'function aggregate(tuple(address target, bytes callData)[] calls) public view returns (uint256 blockNumber, bytes[] memory returnData)'
+      // {
+      //   type: 'function',
+      //   name: 'aggregate',
+      //   payable: false,
+      //   stateMutability: 'view',
+      //   constant: true,
+      //   inputs: [
+      //     {
+      //       components: [
+      //         {
+      //           internalType: 'address',
+      //           name: 'target',
+      //           type: 'address',
+      //         },
+      //         {
+      //           internalType: 'bytes',
+      //           name: 'callData',
+      //           type: 'bytes',
+      //         },
+      //       ],
+      //       internalType: 'struct Multicall.Call[]',
+      //       name: 'calls',
+      //       type: 'tuple[]',
+      //     },
+      //   ],
+      //   outputs: [
+      //     {
+      //       internalType: 'uint256',
+      //       name: 'blockNumber',
+      //       type: 'uint256',
+      //     },
+      //     {
+      //       internalType: 'bytes[]',
+      //       name: 'returnData',
+      //       type: 'bytes[]',
+      //     },
+      //   ]
+      // }
     ],
     provider
   );
@@ -71,7 +72,7 @@ const multiCall = async (provider, calls = []) => {
   }));
 }
 
-export const balances = derived(data, ($data, set) => {
+export const balances = derived([data, tick], ([$data, $tick], set) => {
 
   if( $data.network !== 'bnb' ) {
     return [];
@@ -124,33 +125,8 @@ export const balances = derived(data, ($data, set) => {
 
 }, []);
 
-export const balances_old = derived(data, ($data, set) => {
+const doUpdateBalances = () => tick.update(val => val + 1);
 
-  const arr = [];
+setInterval(doUpdateBalances, 10000);
 
-  if( $data.network !== 'bnb' ) {
-    return arr;
-  }
-
-  [ '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-    '0x55d398326f99059fF775485246999027B3197955',
-    '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c'
-  ].forEach(address => {
-
-    const contract = new ethers.Contract(address, genericErc20Abi, $data.externalProvider)
-
-    contract
-    .balanceOf(address)
-    .then(result => {
-      contract
-      .symbol()
-      .then(symbol => {
-        // console.log('symbol', symbol)
-        arr.push({name: symbol, value: ethers.utils.formatEther(result)});
-        set(arr);
-      });
-    });
-  });
-}, []);
-
-export default data;
+export { data, tick, doUpdateBalances };

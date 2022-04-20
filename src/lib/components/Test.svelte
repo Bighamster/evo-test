@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Button from '$lib/components/UI/Button/Button.svelte';
-  import connector, {data as conData, balances} from '$lib/blockchain/connector';
+  import connector, {data as conData, balances, tick} from '$lib/blockchain/connector';
 
   let connection = {};
 
@@ -38,7 +38,7 @@
 
 {#if $conData.isConnected}
   {#if $conData.network == 'bnb'}
-    <h3><strong>Balances:</strong></h3>
+    <h3><strong>Balances: refreshed {$tick} times </strong></h3>
     <ul>
       {#each $balances as r}
         <li><strong>{r.name}</strong> {r.value}</li>
