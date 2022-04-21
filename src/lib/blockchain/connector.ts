@@ -1,9 +1,10 @@
 import { get } from 'svelte/store';
 import { ethers } from 'ethers';
 import { data, balances, tick } from '$stores/test';
+import type { ExtProvider, Web3Provider } from '$types';
 
-let ethereum;
-let externalProvider;
+let ethereum: ExtProvider;
+let externalProvider: Web3Provider;
 
 const connect = async () => {
 
@@ -51,7 +52,7 @@ const disconnect = () => {
   externalProvider.provider.removeListener('chainChanged', onChainChanged);
   externalProvider.provider.removeListener('disconnect', onDisconnect);
 }
-const onAccountsChanged = async accounts => {
+const onAccountsChanged = async (accounts: Array<number>) => {
   const balance = await externalProvider.getBalance(accounts[0]);
   data.update(d => ({
     ...d,
@@ -60,7 +61,7 @@ const onAccountsChanged = async accounts => {
     balance: ethers.utils.formatEther(balance)
   }));
 }
-const onChainChanged = async chainId => {
+const onChainChanged = async () => {
   const network = await externalProvider.getNetwork();
   const balance = await externalProvider.getBalance(get(data).account);
   data.update(d => ({
@@ -70,8 +71,8 @@ const onChainChanged = async chainId => {
     balance: ethers.utils.formatEther(balance)
   }));
 }
-const onDisconnect = (code, reason) => disconnect();
-const addBnbNetwork = () => {
+const onDisconnect = (): void => disconnect();
+const addBnbNetwork = ():void => {
   if( isConnected() ) {
     ethereum.request({
       method: "wallet_addEthereumChain",
@@ -87,7 +88,7 @@ const addBnbNetwork = () => {
       }]
     })
     .then(() => setMessage())
-    .catch(error => {
+    .catch((error: {code: number}) => {
       if( error.code == -32002 ) {
         setMessage('The previous request is not complete. Please return to the Metamask popup window.');
         console.error(error);
@@ -97,11 +98,11 @@ const addBnbNetwork = () => {
     setMessage('Not connected.');
   }
 }
-const isMetaMask  = () => ethereum?.isMetaMask
-const isConnected = () => !!get(data).account
+const isMetaMask  = (): boolean => ethereum?.isMetaMask;
+const isConnected = (): boolean => !!get(data).account;
 const setMessage  = (text = undefined) => data.update(d => ({...d, message: text}));
 
-export default instance => {
+export default (instance: ExtProvider) => {
 
   ethereum = instance;
   externalProvider = new ethers.providers.Web3Provider(ethereum, 'any');

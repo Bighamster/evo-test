@@ -2,8 +2,9 @@
   import { onMount } from 'svelte';
   import Button from '$lib/components/UI/Button/Button.svelte';
   import connector, {data as conData, balances, tick} from '$lib/blockchain/connector';
+  import type { Connection } from '$types';
 
-  let connection = {};
+  let connection: Connection | undefined;
 
   const connect = (): void => connection?.connect();
   const disconnect = (): void => connection?.disconnect();
@@ -12,9 +13,6 @@
   onMount(() => {
     connection = connector(window.ethereum);
   });
-
-  // $: console.log($conData)
-  // $: console.log($balances)
 </script>
 
 <header>

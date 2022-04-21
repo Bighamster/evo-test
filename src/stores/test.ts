@@ -1,8 +1,10 @@
 import { writable, derived } from 'svelte/store';
 import { ethers } from 'ethers';
+import type { Web3Provider, Connector } from '$types';
 
-const tick = writable(1);
-const data = writable({});
+const tick = writable<number>(1);
+// const data = writable({});
+const data = writable<Connector|{}>({});
 
 const genericErc20Abi = [
   "function balanceOf(address owner) view returns (uint256)",
@@ -12,7 +14,7 @@ const genericErc20Abi = [
 // BNB only
 const multiCallAddress = '0x41263cBA59EB80dC200F3E2544eda4ed6A90E76C';
 
-const multiCall = async (provider, calls = []) => {
+const multiCall = async (provider: Web3Provider, calls = []) => {
 
   const callTuples = calls.map(call => ({
     callData: call.contract.interface.encodeFunctionData(call.function, call.params),
@@ -80,6 +82,7 @@ export const balances = derived([data, tick], ([$data, $tick], set) => {
 
   const provider = $data.externalProvider;
   const signer   = provider.getSigner();
+  const wallet   = $data.account;
 
   const calls = [];
 
@@ -96,7 +99,7 @@ export const balances = derived([data, tick], ([$data, $tick], set) => {
     {
       contract: new ethers.Contract(address, genericErc20Abi, provider),
       function: 'balanceOf(address owner) view returns (uint256)',
-        params: [address]
+        params: [wallet]
     }
   ));
 
